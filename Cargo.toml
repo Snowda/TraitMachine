@@ -1,0 +1,31 @@
+[package]
+
+name = "traitmachine"
+version = "0.0.1"
+authors = ["Conor Forde"]
+rust-version = "1.89.0"
+edition = '2021'
+default-run = "traitmachine"
+repository = "https://www.github.com/Snowda/TraitMachine"
+
+description = "Trait Machine POC"
+keywords = ["traits"]
+
+[[bin]]
+name = "traitmachine"
+path = "src/main.rs"
+
+[dependencies]
+
+# Async communication
+tokio = { version = "1.47.1", features = ["full"] }
+
+# Code Coverage
+cargo-llvm-cov = "0.6.19"
+
+# Randomisation
+rand = "0.8.5"
+
+# Tracing
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
