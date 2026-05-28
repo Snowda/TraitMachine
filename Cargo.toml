@@ -29,3 +29,44 @@ rand = "0.8.5"
 # Tracing
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+# Financial safety — no floats in calculations
+float_arithmetic = "deny"
+float_cmp = "deny"
+float_cmp_const = "deny"
+
+# No panicking in app code
+unwrap_used = "deny"
+expect_used = "warn"
+
+# Import hygiene
+wildcard_imports = "deny"
+
+# Numeric cast safety
+cast_possible_truncation = "deny"
+cast_sign_loss = "deny"
+cast_lossless = "warn"
+as_conversions = "warn"
+
+# Ownership / borrowing
+clone_on_copy = "warn"
+redundant_clone = "warn"
+needless_pass_by_value = "warn"
+ptr_arg = "warn"
+
+# Allocation
+box_collection = "warn"
+redundant_allocation = "warn"
+
+# Style preferences
+needless_return = "allow"       # conflicts with project explicit-return style
+must_use_candidate = "warn"
+str_to_string = "warn"
+
+# Iterator preference
+manual_filter_map = "warn"
+manual_find_map = "warn"
