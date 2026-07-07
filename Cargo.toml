@@ -21,7 +21,7 @@ path = "src/main.rs"
 tokio = { version = "1.47.1", features = ["full"] }
 
 # Randomisation
-rand = "0.8.5"
+rand = "0.10.2"
 
 # Tracing
 tracing = "0.1.41"
