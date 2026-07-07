@@ -20,9 +20,6 @@ path = "src/main.rs"
 # Async communication
 tokio = { version = "1.47.1", features = ["full"] }
 
-# Code Coverage
-cargo-llvm-cov = "0.6.19"
-
 # Randomisation
 rand = "0.8.5"
 

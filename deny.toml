@@ -1,0 +1,49 @@
+# cargo-deny configuration — https://embarkstudios.github.io/cargo-deny/
+# Security gate executed in CI by the cargo-deny workflow. Strict on security
+# advisories (the point of the gate) while lenient on policy checks that would
+# otherwise produce false failures. Adapted from the Reduction project for a
+# single-crate repo with no private git dependencies.
+
+[advisories]
+# Fail on any active RustSec advisory (vulnerabilities, unmaintained, unsound)
+# and on yanked crates.
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+# Permissive licenses common throughout the Rust ecosystem.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "MPL-2.0",
+    "CC0-1.0",
+    # Mozilla CA root-store data bundled by webpki-root-certs / ring (permissive data license).
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.8
+
+[bans]
+# Report, but don't fail, on duplicate versions.
+multiple-versions = "warn"
+# Wildcard version requirements (e.g. `tokio = "*"`) are forbidden — pin to a major.
+wildcards = "deny"
+deny = [
+    # Hermetic, cross-compilable builds only — TLS must go through rustls, never openssl.
+    { name = "openssl" },
+    { name = "openssl-sys" },
+]
+
+[sources]
+# This repo has no private git or alternate-registry dependencies, so treat any
+# unexpected source as an error (stricter than Reduction, which pulls internal
+# crates over private git).
+unknown-registry = "deny"
+unknown-git = "deny"
