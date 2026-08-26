@@ -1,4 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(**/*.rs)",
+      "Read(**/*.toml)",
+      "Edit(**/*.rs)",
+      "Edit(**/*.toml)",
+      "Write(**/*.rs)",
+      "Write(**/*.toml)",
+      "Bash(bulwark:*)",
+      "PowerShell(bulwark:*)",
+      "Bash(arbiter:*)",
+      "PowerShell(arbiter:*)",
+      "Bash(arbiter run *)",
+      "Bash(ntc:*)",
+      "PowerShell(ntc:*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
@@ -6,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "read -r input; cmd=$(echo \"$input\" | sed 's/.*\"command\"\\s*:\\s*\"//;s/\".*//'); if echo \"$cmd\" | grep -qE '^(python3?|pip3?|py) '; then echo '{\"decision\":\"block\",\"reason\":\"Blocked: Python is disabled in this Rust project. Use Rust or shell commands.\"}'; fi",
+            "command": "read -r input; cmd=$(printf '%s' \"$input\" | tr -d '\\r' | sed 's/.*\"command\"\\s*:\\s*\"//;s/\".*//'); if echo \"$cmd\" | grep -qE '^(python3?|pip3?|py) '; then echo '{\"decision\":\"block\",\"reason\":\"Blocked: Python is disabled in this Rust project. Use Rust or shell commands.\"}'; fi",
             "shell": "bash",
             "timeout": 5,
             "statusMessage": "Checking for Python commands..."
