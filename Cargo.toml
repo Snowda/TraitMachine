@@ -3,8 +3,8 @@
 name = "traitmachine"
 version = "0.0.1"
 authors = ["Conor Forde"]
-rust-version = "1.89.0"
-edition = '2021'
+rust-version = "1.96.0"
+edition = '2024'
 default-run = "traitmachine"
 repository = "https://www.github.com/Snowda/TraitMachine"
 
@@ -18,14 +18,17 @@ path = "src/main.rs"
 [dependencies]
 
 # Async communication
-tokio = { version = "1.47.1", features = ["full"] }
+tokio = { version = "1.52.3", features = ["full"] }
 
 # Randomisation
-rand = "0.8.5"
+rand = "0.10.2"
+
+# Matrix operations
+ndarray = "0.17.2"
 
 # Tracing
-tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 [lints.rust]
 unsafe_code = "forbid"
@@ -67,3 +70,12 @@ str_to_string = "warn"
 # Iterator preference
 manual_filter_map = "warn"
 manual_find_map = "warn"
+
+[profile.coverage]
+inherits = "dev"
+opt-level = 0
+debug = false
+
+[profile.coverage.package."*"]
+opt-level = 0
+debug = false
