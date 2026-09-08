@@ -27,12 +27,16 @@ allow = [
     "CC0-1.0",
     # Mozilla CA root-store data bundled by webpki-root-certs / ring (permissive data license).
     "CDLA-Permissive-2.0",
+    "0BSD",
+    "Unlicense",
+    "NCSA",
+    "MIT-0",
 ]
 confidence-threshold = 0.8
 
 [bans]
-# Report, but don't fail, on duplicate versions.
-multiple-versions = "warn"
+# Duplicate versions of the same crate fail the build.
+multiple-versions = "deny"
 # Wildcard version requirements (e.g. `tokio = "*"`) are forbidden — pin to a major.
 wildcards = "deny"
 deny = [
@@ -40,6 +44,7 @@ deny = [
     { name = "openssl" },
     { name = "openssl-sys" },
 ]
+allow-wildcard-paths = true
 
 [sources]
 # This repo has no private git or alternate-registry dependencies, so treat any

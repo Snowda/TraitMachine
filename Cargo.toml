@@ -71,6 +71,16 @@ str_to_string = "warn"
 manual_filter_map = "warn"
 manual_find_map = "warn"
 
+# Panic-macro and stray-stdio bans (CLI bins re-opt-in with a scoped #[allow]).
+unreachable = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+# Complexity / maintainability signals.
+too_many_lines = "warn"
+excessive_nesting = "warn"
+missing_const_for_fn = "warn"
+too_long_first_doc_paragraph = "warn"
+
 [profile.coverage]
 inherits = "dev"
 opt-level = 0
