@@ -1,0 +1,49 @@
+# release_gate in-repo control overlay. Layered on top of the built-in fleet defaults
+# (release_gate/src/defaults.rs). The three maintainability metrics ship fleet-wide as
+# `advisory` (never block); this repo promotes them to `blocker`. Each control below reuses
+# the default's id + check verbatim and only raises `gate`, so it overrides — not duplicates —
+# the default result for the run (results are keyed by (run, control_id), last write wins).
+project = "TraitMachine"
+schema  = 1
+
+[[control]]
+id        = "TraitMachine::default.comment-ratio"
+title     = "No source file over the 10% comment-line cap"
+assertion = "Repo override: promoted from the fleet advisory default to a blocker."
+theme     = "maintainability"
+gate      = "blocker"
+severity  = "low"
+[control.check]
+kind      = "complexity"
+metric    = "comment_ratio"
+scope     = "file_worst"
+files     = ["src", "crates"]
+predicate = "<= 0.10"
+
+[[control]]
+id        = "TraitMachine::default.cyclomatic"
+title     = "No function over cyclomatic complexity 20"
+assertion = "Repo override: promoted from the fleet advisory default to a blocker."
+theme     = "maintainability"
+gate      = "blocker"
+severity  = "low"
+[control.check]
+kind      = "complexity"
+metric    = "cyclomatic"
+scope     = "file_worst"
+files     = ["src", "crates"]
+predicate = "<= 20"
+
+[[control]]
+id        = "TraitMachine::default.file-length"
+title     = "No source file over 800 lines"
+assertion = "Repo override: promoted from the fleet advisory default to a blocker."
+theme     = "maintainability"
+gate      = "blocker"
+severity  = "low"
+[control.check]
+kind      = "complexity"
+metric    = "loc"
+scope     = "file_worst"
+files     = ["src", "crates"]
+predicate = "<= 800"
