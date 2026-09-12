@@ -1,0 +1,8 @@
+# Keep the build context small and reproducible.
+target/
+.git/
+.gitignore
+*.md
+.release_gate.toml
+Containerfile
+.containerignore
