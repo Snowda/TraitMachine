@@ -61,3 +61,14 @@ evidence = ["bulwark config.toml"]
 kind = "coverage"
 files = []
 floor = 80.0
+
+[[control]]
+id        = "TraitMachine::default.pulumi"
+title     = "No Pulumi infrastructure in this repo"
+assertion = "Repo override: TraitMachine carries no infrastructure, so the Pulumi presence check is off."
+theme     = "other"
+gate      = "advisory"
+severity  = "low"
+[control.check]
+kind      = "pulumi"
+policy    = "off"
