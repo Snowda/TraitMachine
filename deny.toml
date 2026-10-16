@@ -44,6 +44,7 @@ deny = [
     # Hermetic, cross-compilable builds only — TLS must go through rustls, never openssl.
     { name = "openssl" },
     { name = "openssl-sys" },
+    { crate = "arc-swap", reason = "use solo (C:/Git/Solo/solo), the maintained arc-swap fork" },
 ]
 allow-wildcard-paths = true
 
