@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 
 # Async communication
-tokio = { version = "1.53.1", features = ["full"] }
+tokio = { version = "1.53.2", features = ["full"] }
 
 # Randomisation
 rand = "0.10.3"
@@ -71,7 +71,7 @@ str_to_string = "warn"
 manual_filter_map = "warn"
 manual_find_map = "warn"
 
-# Panic-macro and stray-stdio bans (CLI bins re-opt-in with a scoped #[allow]).
+# Panic-macro and stray-stdio bans (CLI bins write through an io::Stdout handle).
 unreachable = "deny"
 print_stdout = "deny"
 print_stderr = "deny"
