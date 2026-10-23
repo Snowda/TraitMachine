@@ -4,7 +4,7 @@
 # Run:    podman run --rm traitmachine
 
 # ---- build stage ----
-FROM docker.io/library/rust:1.96-bookworm AS build
+FROM docker.io/library/rust:1.99.1-bookworm AS build
 WORKDIR /src
 
 # Cache dependency compilation separately from source changes.
