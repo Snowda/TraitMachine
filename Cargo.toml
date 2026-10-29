@@ -85,6 +85,11 @@ excessive_nesting = "warn"
 missing_const_for_fn = "warn"
 too_long_first_doc_paragraph = "warn"
 
+[profile.release]
+lto = "thin"
+codegen-units = 1
+overflow-checks = true
+
 [profile.coverage]
 inherits = "dev"
 opt-level = 0
