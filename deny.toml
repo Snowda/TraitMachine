@@ -45,6 +45,7 @@ deny = [
     { name = "openssl" },
     { name = "openssl-sys" },
     { crate = "arc-swap", reason = "use solo (C:/Git/Solo), the maintained arc-swap fork" },
+    { crate = "reqwest", reason = "use hyper (hyper-util client) instead of reqwest" },
 ]
 allow-wildcard-paths = true
 
