@@ -6,7 +6,7 @@
 //! use traitmachine::{save, load, StateKind, Probability};
 //! let matrix = save();
 //! assert_eq!(matrix.shape(), &[3, 3]);
-//! let mut machine = match load(matrix, StateKind::Clear) {
+//! let mut machine = match load(&matrix, StateKind::Clear) {
 //!     Ok(machine) => machine,
 //!     Err(e) => return Err(format!("load matrix: {e}")),
 //! };
@@ -14,7 +14,7 @@
 //! Ok::<(), String>(())
 //! ```
 
-use ndarray::Array2;
+use ndarray::{Array2, ArrayView2};
 
 use crate::{AnyMachine, Clear, Machine, Probability, Rain, Snow};
 
@@ -110,8 +110,8 @@ pub fn save() -> Array2<u8> {
 	matrix
 }
 
-/// Load a 2D transition matrix into a runnable machine, validating it is N×N and every row sums to 100.
-pub fn load(matrix: Array2<u8>, start: StateKind) -> Result<MatrixMachine, MatrixError> {
+/// Load a borrowed 2D transition matrix into a runnable machine; it must be N×N and every row must sum to 100.
+pub fn load(matrix: &Array2<u8>, start: StateKind) -> Result<MatrixMachine<'_>, MatrixError> {
 	let (rows, cols) = matrix.dim();
 	if rows != cols {
 		return Err(MatrixError::NotSquare { rows, cols });
@@ -126,17 +126,17 @@ pub fn load(matrix: Array2<u8>, start: StateKind) -> Result<MatrixMachine, Matri
 			return Err(MatrixError::RowSum { row, sum });
 		}
 	}
-	Ok(MatrixMachine { matrix, current: start.index() })
+	Ok(MatrixMachine { matrix: matrix.view(), current: start.index() })
 }
 
 /// A machine driven by a loaded transition matrix; the current state is a row index.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MatrixMachine {
-	matrix: Array2<u8>,
+pub struct MatrixMachine<'a> {
+	matrix: ArrayView2<'a, u8>,
 	current: usize,
 }
 
-impl MatrixMachine {
+impl<'a> MatrixMachine<'a> {
 	#[must_use]
 	pub fn state(&self) -> StateKind {
 		StateKind::ALL[self.current]
@@ -144,8 +144,8 @@ impl MatrixMachine {
 
 	/// The 2D matrix backing this machine (save it back out).
 	#[must_use]
-	pub fn matrix(&self) -> &Array2<u8> {
-		&self.matrix
+	pub fn matrix(&self) -> ArrayView2<'a, u8> {
+		self.matrix
 	}
 
 	/// Transition on `input`; the percent selects the next state by cumulative row probability.
@@ -190,7 +190,7 @@ mod tests {
 			for percent in 0..100u8 {
 				let input = Probability::exact(percent);
 				let via_traits = StateKind::from(&AnyMachine::from(start).decide(input));
-				let mut via_matrix: MatrixMachine = match load(matrix.clone(), start) {
+				let mut via_matrix: MatrixMachine = match load(&matrix, start) {
 					Ok(machine) => machine,
 					Err(e) => return Err(format!("valid matrix: {e}")),
 				};
@@ -203,7 +203,7 @@ mod tests {
 	#[test]
 	fn load_rejects_non_square() {
 		let matrix = Array2::<u8>::zeros((2, 3));
-		assert_eq!(load(matrix, StateKind::Rain), Err(MatrixError::NotSquare { rows: 2, cols: 3 }));
+		assert_eq!(load(&matrix, StateKind::Rain), Err(MatrixError::NotSquare { rows: 2, cols: 3 }));
 	}
 
 	#[test]
@@ -212,7 +212,7 @@ mod tests {
 		matrix.row_mut(0)[0] = 100;
 		matrix.row_mut(1)[1] = 100;
 		assert_eq!(
-			load(matrix, StateKind::Rain),
+			load(&matrix, StateKind::Rain),
 			Err(MatrixError::WrongSize { expected: 3, found: 2 })
 		);
 	}
@@ -225,17 +225,17 @@ mod tests {
 		for row in 1..3 {
 			matrix.row_mut(row)[row] = 100;
 		}
-		assert_eq!(load(matrix, StateKind::Rain), Err(MatrixError::RowSum { row: 0, sum: 90 }));
+		assert_eq!(load(&matrix, StateKind::Rain), Err(MatrixError::RowSum { row: 0, sum: 90 }));
 	}
 
 	#[test]
 	fn round_trip_matrix_out_and_back() -> Result<(), String> {
 		let original = save();
-		let machine: MatrixMachine = match load(original.clone(), StateKind::Clear) {
+		let machine: MatrixMachine = match load(&original, StateKind::Clear) {
 			Ok(machine) => machine,
 			Err(e) => return Err(format!("valid matrix: {e}")),
 		};
-		assert_eq!(machine.matrix(), &original);
+		assert_eq!(machine.matrix(), original);
 		return Ok(());
 	}
 
@@ -248,7 +248,8 @@ mod tests {
 
 	#[test]
 	fn machine_state_reports_current_row() -> Result<(), String> {
-		let machine: MatrixMachine = match load(save(), StateKind::Snow) {
+		let matrix = save();
+		let machine: MatrixMachine = match load(&matrix, StateKind::Snow) {
 			Ok(machine) => machine,
 			Err(e) => return Err(format!("valid matrix: {e}")),
 		};
@@ -285,7 +286,8 @@ mod tests {
 	fn step_input_at_or_above_100_stays_put() -> Result<(), String> {
 		// roll never reaches acc (max 100), so the loop falls through to the
 		// "stay put" fallback and the current state is unchanged.
-		let mut machine: MatrixMachine = match load(save(), StateKind::Clear) {
+		let matrix = save();
+		let mut machine: MatrixMachine = match load(&matrix, StateKind::Clear) {
 			Ok(machine) => machine,
 			Err(e) => return Err(format!("valid matrix: {e}")),
 		};
