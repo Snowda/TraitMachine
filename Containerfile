@@ -15,14 +15,18 @@ RUN mkdir src && echo 'fn main() {}' > src/main.rs \
 
 # Build the real sources.
 COPY . .
-RUN cargo build --release --locked --bin traitmachine
+RUN cargo build --release --locked --bin traitmachine \
+    && mkdir -p /rootfs/home/app
 
-# ---- runtime stage ----
-FROM docker.io/library/debian:bookworm-slim AS runtime
+# ---- runtime stage: distroless/cc (glibc + libgcc), no shell ----
+FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
 
-# Run as an unprivileged user.
-RUN useradd --create-home --uid 10001 app
-USER app
+# Run as an unprivileged user; the home dir is made in the build stage.
+COPY --from=build --chown=10001:10001 /rootfs/home/app /home/app
+ENV HOME=/home/app
+# distroless:nonroot sets WORKDIR /home/nonroot; keep the previous cwd.
+WORKDIR /
+USER 10001:10001
 
 COPY --from=build /src/target/release/traitmachine /usr/local/bin/traitmachine
 
