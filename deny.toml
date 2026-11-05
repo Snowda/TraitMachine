@@ -46,6 +46,7 @@ deny = [
     { name = "openssl-sys" },
     { crate = "arc-swap", reason = "use solo (C:/Git/Solo), the maintained arc-swap fork" },
     { crate = "reqwest", reason = "use hyper (hyper-util client) instead of reqwest" },
+    { crate = "sentry", reason = "use Borealis/Vignette/Remnant, the in-house telemetry stack, instead of Sentry" },
 ]
 allow-wildcard-paths = true
 
