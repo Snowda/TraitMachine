@@ -11,7 +11,7 @@
 use rand::RngExt;
 
 pub mod matrix;
-pub use matrix::{load, save, MatrixError, MatrixMachine, StateKind};
+pub use matrix::{load, save, Matrix, MatrixError, MatrixMachine, StateKind, STATES};
 
 pub trait Named {
 	const NAME: &'static str;
