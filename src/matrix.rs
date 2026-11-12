@@ -1,5 +1,5 @@
 //! Transition matrix: `matrix[from][to]` is `P(next = to | current = from)` in percent, each row sums to 100.
-//! [`save`] derives it from the `Resolve` thresholds; [`load`] gives a [`MatrixMachine`] that walks a row.
+//! [`save`] derives it from the `Resolve` thresholds. [`load`] gives a [`MatrixMachine`] that walks a row.
 //! ```
 //! use traitmachine::{save, load, StateKind, Probability};
 //! let matrix = save();
@@ -14,7 +14,7 @@
 
 use crate::{AnyMachine, Clear, Machine, Probability, Rain, Snow};
 
-/// A runtime, index-addressable tag for each state (the matrix needs an ordering).
+/// A runtime tag with an index for each state. The matrix needs a fixed order.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum StateKind {
 	Rain,
@@ -47,7 +47,7 @@ impl StateKind {
 /// The number of states, and so each side of the matrix.
 pub const STATES: usize = StateKind::ALL.len();
 
-/// `matrix[from][to]` in percent; the type fixes the shape, so only row sums need a check.
+/// `matrix[from][to]` in percent. The type fixes the shape, so only row sums need a check.
 pub type Matrix = [[u8; STATES]; STATES];
 
 impl From<StateKind> for AnyMachine {
@@ -94,14 +94,14 @@ pub fn save() -> Matrix {
 	let mut matrix: Matrix = [[0; STATES]; STATES];
 	for from in StateKind::ALL {
 		for percent in 0..100u8 {
-			let next = AnyMachine::from(from).decide(Probability::exact(percent));
+			let next: AnyMachine = AnyMachine::from(from).decide(Probability::exact(percent));
 			matrix[from.index()][StateKind::from(&next).index()] += 1;
 		}
 	}
 	matrix
 }
 
-/// Load a borrowed transition matrix into a runnable machine; every row must sum to 100.
+/// Load a borrowed transition matrix into a machine. Every row must sum to 100.
 pub fn load(matrix: &Matrix, start: StateKind) -> Result<MatrixMachine<'_>, MatrixError> {
 	for (row, cells) in matrix.iter().enumerate() {
 		let sum: u16 = cells.iter().map(|&p| u16::from(p)).sum();
@@ -131,9 +131,9 @@ impl<'a> MatrixMachine<'a> {
 		self.matrix
 	}
 
-	/// Transition on `input`; the percent selects the next state by cumulative row probability.
+	/// Transition on `input`. The percent selects the next state by cumulative row probability.
 	pub fn step(&mut self, input: Probability) -> StateKind {
-		let roll = u16::from(input.percent());
+		let roll: u16 = u16::from(input.percent());
 		let mut acc: u16 = 0;
 		for (kind, &prob) in StateKind::ALL.into_iter().zip(&self.matrix[self.current.index()]) {
 			acc += u16::from(prob);
@@ -142,7 +142,7 @@ impl<'a> MatrixMachine<'a> {
 				return kind;
 			}
 		}
-		// Unreachable for a validated row (sum 100, roll < 100); stay put if not.
+		// Unreachable for a validated row (sum 100, roll < 100). If not, stay in the current state.
 		self.current
 	}
 }
@@ -152,7 +152,7 @@ mod tests {
 	use super::*;
 	use core::fmt::Write;
 
-	/// A `fmt::Write` sink that consumes `self.0` as output arrives; no heap buffer.
+	/// A `fmt::Write` sink that consumes `self.0` as output arrives. It uses no heap buffer.
 	struct Expect<'a>(&'a str);
 
 	impl Write for Expect<'_> {
@@ -162,8 +162,8 @@ mod tests {
 		}
 	}
 
-	fn renders(value: &impl core::fmt::Display, expected: &str) -> bool {
-		let mut expect = Expect(expected);
+	fn is_rendered_as(value: &impl core::fmt::Display, expected: &str) -> bool {
+		let mut expect: Expect<'_> = Expect(expected);
 		write!(expect, "{value}").is_ok() && expect.0.is_empty()
 	}
 
@@ -182,11 +182,11 @@ mod tests {
 
 	#[test]
 	fn load_matches_trait_thresholds() -> Result<(), MatrixError> {
-		let matrix = save();
+		let matrix: Matrix = save();
 		for start in StateKind::ALL {
 			for percent in 0..100u8 {
-				let input = Probability::exact(percent);
-				let via_traits = StateKind::from(&AnyMachine::from(start).decide(input));
+				let input: Probability = Probability::exact(percent);
+				let via_traits: StateKind = StateKind::from(&AnyMachine::from(start).decide(input));
 				let mut via_matrix: MatrixMachine = load(&matrix, start)?;
 				assert_eq!(via_matrix.step(input), via_traits, "start {start:?}, p {percent}");
 			}
@@ -202,7 +202,7 @@ mod tests {
 
 	#[test]
 	fn round_trip_matrix_out_and_back() -> Result<(), MatrixError> {
-		let original = save();
+		let original: Matrix = save();
 		let machine: MatrixMachine = load(&original, StateKind::Clear)?;
 		assert_eq!(machine.matrix(), &original);
 		return Ok(());
@@ -217,7 +217,7 @@ mod tests {
 
 	#[test]
 	fn machine_state_reports_current_row() -> Result<(), MatrixError> {
-		let matrix = save();
+		let matrix: Matrix = save();
 		let machine: MatrixMachine = load(&matrix, StateKind::Snow)?;
 		assert_eq!(machine.state(), StateKind::Snow);
 		return Ok(());
@@ -225,10 +225,10 @@ mod tests {
 
 	#[test]
 	fn display_renders_row_sum() {
-		let err = MatrixError::RowSum { row: 0, sum: 90 };
-		assert!(renders(&err, "row 0 probabilities sum to 90%, must be 100%"), "full message");
-		assert!(!renders(&err, "row 0 probabilities sum to 90%"), "a prefix alone must not match");
-		assert!(!renders(&err, "row 1 probabilities sum to 90%, must be 100%"), "a wrong row must not match");
+		let err: MatrixError = MatrixError::RowSum { row: 0, sum: 90 };
+		assert!(is_rendered_as(&err, "row 0 probabilities sum to 90%, must be 100%"), "full message");
+		assert!(!is_rendered_as(&err, "row 0 probabilities sum to 90%"), "a prefix alone must not match");
+		assert!(!is_rendered_as(&err, "row 1 probabilities sum to 90%, must be 100%"), "a wrong row must not match");
 	}
 
 	#[test]
@@ -239,7 +239,7 @@ mod tests {
 
 	#[test]
 	fn step_input_at_or_above_100_stays_put() -> Result<(), MatrixError> {
-		let matrix = save();
+		let matrix: Matrix = save();
 		let mut machine: MatrixMachine = load(&matrix, StateKind::Clear)?;
 		assert_eq!(machine.step(Probability::exact(100)), StateKind::Clear);
 		assert_eq!(machine.state(), StateKind::Clear);

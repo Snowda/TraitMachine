@@ -1,6 +1,6 @@
 //! Trait-driven state machine: every transition goes through `decide(Probability)`.
-//! States are zero-sized types; each state's `Resolve` impl fixes its permitted
-//! next states (`Outcome`) at compile time while the input picks among them.
+//! States are zero-sized types. Each state's `Resolve` impl fixes its permitted
+//! next states (`Outcome`) at compile time, and the input picks among them.
 //! ```
 //! use traitmachine::{Machine, Clear, Probability, ClearNext};
 //! assert!(matches!(Machine::new(Clear).decide(Probability::exact(10)), ClearNext::Rain(_)));
@@ -129,7 +129,7 @@ impl<S: Named> Machine<S> {
 }
 
 impl<S: Resolve> Machine<S> {
-	/// The unified transition; the input selects which `Outcome` variant results.
+	/// The unified transition. The input selects which `Outcome` variant results.
 	#[must_use]
 	pub fn decide(self, input: Probability) -> S::Outcome {
 		self.state.resolve(input)
@@ -154,7 +154,7 @@ impl AnyMachine {
 		}
 	}
 
-	/// Step once, mapping each typed outcome back into the runtime witness.
+	/// Step once and map each typed outcome back into the runtime witness.
 	#[must_use]
 	pub fn decide(self, input: Probability) -> AnyMachine {
 		match self {
@@ -190,9 +190,9 @@ mod tests {
 
 	#[test]
 	fn roll_stays_in_0_to_99() {
-		// roll() samples 0..100; the upper bound is exclusive, so 99 is the max.
+		// roll() samples 0..100. The upper bound is exclusive, so 99 is the max.
 		for _ in 0..1_000 {
-			let p = Probability::roll().percent();
+			let p: u8 = Probability::roll().percent();
 			assert!(p < 100, "roll produced {p}, out of 0..100");
 		}
 	}
@@ -267,14 +267,14 @@ mod tests {
 
 	#[test]
 	fn any_rain_steps_to_clear_then_snow() {
-		let rain = AnyMachine::Rain(Machine::new(Rain));
+		let rain: AnyMachine = AnyMachine::Rain(Machine::new(Rain));
 		assert!(matches!(rain.decide(Probability::exact(0)), AnyMachine::Clear(_)));
 		assert!(matches!(rain.decide(Probability::exact(70)), AnyMachine::Snow(_)));
 	}
 
 	#[test]
 	fn any_clear_steps_to_all_three() {
-		let clear = AnyMachine::Clear(Machine::new(Clear));
+		let clear: AnyMachine = AnyMachine::Clear(Machine::new(Clear));
 		assert!(matches!(clear.decide(Probability::exact(0)), AnyMachine::Rain(_)));
 		assert!(matches!(clear.decide(Probability::exact(33)), AnyMachine::Clear(_)));
 		assert!(matches!(clear.decide(Probability::exact(66)), AnyMachine::Snow(_)));
@@ -282,7 +282,7 @@ mod tests {
 
 	#[test]
 	fn any_snow_steps_to_rain_then_snow() {
-		let snow = AnyMachine::Snow(Machine::new(Snow));
+		let snow: AnyMachine = AnyMachine::Snow(Machine::new(Snow));
 		assert!(matches!(snow.decide(Probability::exact(0)), AnyMachine::Rain(_)));
 		assert!(matches!(snow.decide(Probability::exact(60)), AnyMachine::Snow(_)));
 	}
