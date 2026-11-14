@@ -7,9 +7,9 @@ let
     sha256 = "1sxd2sqlpy1bx6b5xiwy1pbyygazl9d1a5yy0rvqfsihqpcibq2y";
   };
   rustOverlay = fetchTarball {
-    # oxalica/rust-overlay master, 2026-11-09
-    url = "https://github.com/oxalica/rust-overlay/archive/b70538330f20adc9665afa2976471eb5b85ebd1f.tar.gz";
-    sha256 = "0qraxcpbs2dg4k1nrmihrpnw3ws3h0mz975lzn6nkzswx7w2zvi7";
+    # oxalica/rust-overlay master, 2026-11-12
+    url = "https://github.com/oxalica/rust-overlay/archive/8bbfc858c7b85f5e6ed6d6cc201ffcee1bb08a9b.tar.gz";
+    sha256 = "0dk7kbba29zgdn1ydsr59ipfbn1rjwljcs73cclg0zwl2rninv1n";
   };
   pkgs = import nixpkgs { overlays = [ (import rustOverlay) ]; };
 
