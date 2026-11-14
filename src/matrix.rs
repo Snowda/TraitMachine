@@ -26,7 +26,7 @@ impl StateKind {
 	pub const ALL: [StateKind; 3] = [StateKind::Rain, StateKind::Clear, StateKind::Snow];
 
 	#[must_use]
-	pub fn index(self) -> usize {
+	pub const fn index(self) -> usize {
 		match self {
 			StateKind::Rain => 0,
 			StateKind::Clear => 1,
@@ -35,7 +35,7 @@ impl StateKind {
 	}
 
 	#[must_use]
-	pub fn name(self) -> &'static str {
+	pub const fn name(self) -> &'static str {
 		match self {
 			StateKind::Rain => "Rain",
 			StateKind::Clear => "Clear",
@@ -121,13 +121,13 @@ pub struct MatrixMachine<'a> {
 
 impl<'a> MatrixMachine<'a> {
 	#[must_use]
-	pub fn state(&self) -> StateKind {
+	pub const fn state(&self) -> StateKind {
 		self.current
 	}
 
 	/// The matrix behind this machine (save it back out).
 	#[must_use]
-	pub fn matrix(&self) -> &'a Matrix {
+	pub const fn matrix(&self) -> &'a Matrix {
 		self.matrix
 	}
 

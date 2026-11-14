@@ -24,7 +24,7 @@ pub struct Probability(u8);
 impl Probability {
 	/// A user-supplied, deterministic input.
 	#[must_use]
-	pub fn exact(percent: u8) -> Self {
+	pub const fn exact(percent: u8) -> Self {
 		Probability(percent)
 	}
 
@@ -35,7 +35,7 @@ impl Probability {
 	}
 
 	#[must_use]
-	pub fn percent(self) -> u8 {
+	pub const fn percent(self) -> u8 {
 		self.0
 	}
 }
@@ -118,12 +118,12 @@ pub struct Machine<S> {
 
 impl<S: Named> Machine<S> {
 	#[must_use]
-	pub fn new(state: S) -> Self {
+	pub const fn new(state: S) -> Self {
 		Self { state }
 	}
 
 	#[must_use]
-	pub fn name(&self) -> &'static str {
+	pub const fn name(&self) -> &'static str {
 		S::NAME
 	}
 }
@@ -146,7 +146,7 @@ pub enum AnyMachine {
 
 impl AnyMachine {
 	#[must_use]
-	pub fn name(&self) -> &'static str {
+	pub const fn name(&self) -> &'static str {
 		match self {
 			AnyMachine::Rain(m) => m.name(),
 			AnyMachine::Clear(m) => m.name(),
