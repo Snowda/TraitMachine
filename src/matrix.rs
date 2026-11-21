@@ -91,24 +91,25 @@ impl std::error::Error for MatrixError {}
 /// Count each input `0..100` per state, so each row sums to 100 by construction.
 #[must_use]
 pub fn save() -> Matrix {
-	let mut matrix: Matrix = [[0; STATES]; STATES];
-	for from in StateKind::ALL {
-		for percent in 0..100u8 {
+	StateKind::ALL
+		.into_iter()
+		.flat_map(|from: StateKind| (0..100u8).map(move |percent: u8| (from, percent)))
+		.fold([[0; STATES]; STATES], |mut matrix: Matrix, (from, percent): (StateKind, u8)| {
 			let next: AnyMachine = AnyMachine::from(from).decide(Probability::exact(percent));
 			matrix[from.index()][StateKind::from(&next).index()] += 1;
-		}
-	}
-	matrix
+			return matrix;
+		})
 }
 
 /// Load a borrowed transition matrix into a machine. Every row must sum to 100.
 pub fn load(matrix: &Matrix, start: StateKind) -> Result<MatrixMachine<'_>, MatrixError> {
-	for (row, cells) in matrix.iter().enumerate() {
+	matrix.iter().enumerate().try_for_each(|(row, cells): (usize, &[u8; STATES])| -> Result<(), MatrixError> {
 		let sum: u16 = cells.iter().map(|&p| u16::from(p)).sum();
 		if sum != 100 {
 			return Err(MatrixError::RowSum { row, sum });
 		}
-	}
+		return Ok(());
+	})?;
 	Ok(MatrixMachine { matrix, current: start })
 }
 
@@ -134,15 +135,17 @@ impl<'a> MatrixMachine<'a> {
 	/// Transition on `input`. The percent selects the next state by cumulative row probability.
 	pub fn step(&mut self, input: Probability) -> StateKind {
 		let roll: u16 = u16::from(input.percent());
-		let mut acc: u16 = 0;
-		for (kind, &prob) in StateKind::ALL.into_iter().zip(&self.matrix[self.current.index()]) {
-			acc += u16::from(prob);
-			if roll < acc {
-				self.current = kind;
-				return kind;
-			}
-		}
-		// Unreachable for a validated row (sum 100, roll < 100). If not, stay in the current state.
+		let next: Option<StateKind> = StateKind::ALL
+			.into_iter()
+			.zip(&self.matrix[self.current.index()])
+			.scan(0u16, |acc: &mut u16, (kind, &prob): (StateKind, &u8)| {
+				*acc += u16::from(prob);
+				return Some((kind, *acc));
+			})
+			.find(|&(_, acc): &(StateKind, u16)| roll < acc)
+			.map(|(kind, _): (StateKind, u16)| kind);
+		// None is unreachable for a validated row (sum 100, roll < 100). If not, stay in the current state.
+		self.current = next.unwrap_or(self.current);
 		self.current
 	}
 }
@@ -169,10 +172,10 @@ mod tests {
 
 	#[test]
 	fn every_saved_row_covers_all_probabilities() {
-		for (row, cells) in save().iter().enumerate() {
+		save().iter().enumerate().for_each(|(row, cells): (usize, &[u8; STATES])| {
 			let sum: u16 = cells.iter().map(|&p| u16::from(p)).sum();
 			assert_eq!(sum, 100, "row {row} must account for all 100%");
-		}
+		});
 	}
 
 	#[test]
@@ -183,15 +186,16 @@ mod tests {
 	#[test]
 	fn load_matches_trait_thresholds() -> Result<(), MatrixError> {
 		let matrix: Matrix = save();
-		for start in StateKind::ALL {
-			for percent in 0..100u8 {
+		return StateKind::ALL
+			.into_iter()
+			.flat_map(|start: StateKind| (0..100u8).map(move |percent: u8| (start, percent)))
+			.try_for_each(|(start, percent): (StateKind, u8)| -> Result<(), MatrixError> {
 				let input: Probability = Probability::exact(percent);
 				let via_traits: StateKind = StateKind::from(&AnyMachine::from(start).decide(input));
 				let mut via_matrix: MatrixMachine = load(&matrix, start)?;
 				assert_eq!(via_matrix.step(input), via_traits, "start {start:?}, p {percent}");
-			}
-		}
-		return Ok(());
+				return Ok(());
+			});
 	}
 
 	#[test]
@@ -244,5 +248,27 @@ mod tests {
 		assert_eq!(machine.step(Probability::exact(100)), StateKind::Clear);
 		assert_eq!(machine.state(), StateKind::Clear);
 		return Ok(());
+	}
+
+	#[test]
+	fn step_picks_the_cumulative_bucket_for_every_valid_row() -> Result<(), MatrixError> {
+		return (0..=100u8)
+			.flat_map(|a: u8| (0..=(100 - a)).map(move |b: u8| [a, b, 100 - a - b]))
+			.flat_map(|row: [u8; STATES]| (0..=u8::MAX).map(move |percent: u8| (row, percent)))
+			.try_for_each(|(row, percent): ([u8; STATES], u8)| -> Result<(), MatrixError> {
+				let matrix: Matrix = [row; STATES];
+				let mut machine: MatrixMachine = load(&matrix, StateKind::Rain)?;
+				let next: StateKind = machine.step(Probability::exact(percent));
+				assert_eq!(machine.state(), next, "row {row:?}, p {percent}: state must follow step");
+				if percent >= 100 {
+					assert_eq!(next, StateKind::Rain, "row {row:?}, p {percent}: must stay put");
+					return Ok(());
+				}
+				let below: u16 = row[..next.index()].iter().map(|&p| u16::from(p)).sum();
+				let through: u16 = below + u16::from(row[next.index()]);
+				let roll: u16 = u16::from(percent);
+				assert!(below <= roll && roll < through, "row {row:?}, p {percent} -> {next:?}");
+				return Ok(());
+			});
 	}
 }

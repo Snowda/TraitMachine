@@ -191,10 +191,10 @@ mod tests {
 	#[test]
 	fn roll_stays_in_0_to_99() {
 		// roll() samples 0..100. The upper bound is exclusive, so 99 is the max.
-		for _ in 0..1_000 {
+		(0..1_000).for_each(|_| {
 			let p: u8 = Probability::roll().percent();
 			assert!(p < 100, "roll produced {p}, out of 0..100");
-		}
+		});
 	}
 
 	// --- Named / Machine::name ----------------------------------------------

@@ -11,9 +11,10 @@ fn main() -> io::Result<()> {
 	machine = machine.decide(Probability::exact(80));
 	writeln!(out, "{}", machine.name())?;
 
-	for _ in 0..8 {
-		machine = machine.decide(Probability::roll());
-		writeln!(out, "{}", machine.name())?;
-	}
+	(0..8).try_fold(machine, |current: AnyMachine, _| -> io::Result<AnyMachine> {
+		let next: AnyMachine = current.decide(Probability::roll());
+		writeln!(out, "{}", next.name())?;
+		return Ok(next);
+	})?;
 	return Ok(());
 }
