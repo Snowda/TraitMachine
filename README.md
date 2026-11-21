@@ -1,2 +1,2 @@
 # TraitMachine
-POC of a design pattern using Traits rather than States
+A proof of concept of a design pattern that uses traits, not states.
