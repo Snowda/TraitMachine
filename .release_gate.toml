@@ -46,6 +46,18 @@ kind      = "pulumi"
 policy    = "off"
 
 [[control]]
+id        = "TraitMachine::default.fuzz"
+title     = "No fuzz crate in this repo"
+assertion = "Repo override: TraitMachine reads no untrusted input (no parser, file, or network surface). Its inputs are a u8 percent and a [[u8; 3]; 3] matrix, and unit tests enumerate both exhaustively."
+theme     = "other"
+gate      = "advisory"
+severity  = "low"
+evidence  = ["repo override", "src/matrix.rs"]
+[control.check]
+kind      = "fuzz"
+policy    = "off"
+
+[[control]]
 id        = "TraitMachine::default.openapi"
 title     = "No OpenAPI spec in this repo"
 assertion = "Repo override: TraitMachine exposes no HTTP API, so the OpenAPI presence check is off."
