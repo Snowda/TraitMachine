@@ -21,7 +21,7 @@ path = "src/main.rs"
 rand = "0.10.3"
 
 [lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 
 [lints.clippy]
 ref_option = "deny"
