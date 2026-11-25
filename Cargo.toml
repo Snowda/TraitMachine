@@ -18,7 +18,7 @@ path = "src/main.rs"
 [dependencies]
 
 # Randomisation
-rand = "0.10.3"
+rand = "0.10.4"
 
 [lints.rust]
 unsafe_code = "deny"
