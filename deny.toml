@@ -41,6 +41,7 @@ multiple-versions = "deny"
 # Wildcard version requirements (e.g. `tokio = "*"`) are forbidden — pin to a major.
 wildcards = "deny"
 deny = [
+    { crate = "thiserror", reason = "write custom errors instead: a hand-written Display impl, `impl std::error::Error for E {}` and From impls, with no derive and no `dyn` source() override (see C:/Git/Chrono src/wire.rs, src/config.rs)" },
     # Hermetic, cross-compilable builds only — TLS must go through rustls, never openssl.
     { name = "openssl" },
     { name = "openssl-sys" },
